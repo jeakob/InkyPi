@@ -212,6 +212,13 @@ create_venv(){
   $VENV_PATH/bin/python -m pip install -r $PIP_REQUIREMENTS_FILE -qq > /dev/null &
   show_loader "\tInstalling python dependencies. "
 
+  # Install the Chromium browser Playwright drives for the Home Assistant plugin
+  # (the pip package alone ships no browser). Best effort: a failure here should not
+  # abort the whole install for users who don't use that plugin.
+  $VENV_PATH/bin/playwright install-deps chromium > /dev/null 2>&1
+  $VENV_PATH/bin/playwright install chromium > /dev/null 2>&1 &
+  show_loader "\tInstalling Chromium browser for the Home Assistant plugin. "
+
   # do additional dependencies for Waveshare support.
   if [[ -n "$WS_TYPE" ]]; then
     echo "Adding additional dependencies for waveshare to the python virtual environment. "

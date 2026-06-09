@@ -1,0 +1,51 @@
+<div class="form-group">
+    <label for="ha_url" class="form-label">Home Assistant URL:</label>
+    <input type="text" id="ha_url" name="ha_url" placeholder="https://homeassistant.local:8123" required class="form-input">
+</div>
+
+<div class="form-group">
+    <label for="dashboard_path" class="form-label">Dashboard path:</label>
+    <input type="text" id="dashboard_path" name="dashboard_path" placeholder="/lovelace/inkypi2w?kiosk" class="form-input">
+    <span style="color: var(--text-secondary); font-size: 0.85em;">The path (and query string) of the Lovelace view to capture. Tip: add the <code>?kiosk</code> param with the kiosk-mode card to hide the header and sidebar.</span>
+</div>
+
+<div class="form-group">
+    <label for="access_token" class="form-label">Long-lived access token:</label>
+    <textarea id="access_token" name="access_token" rows="3" placeholder="Paste your token here" required class="form-input"></textarea>
+    <span style="color: var(--text-secondary); font-size: 0.85em;">Create one in Home Assistant under your Profile &rarr; Security &rarr; Long-lived access tokens. It is injected into the browser's localStorage so the dashboard loads authenticated.</span>
+</div>
+
+<div class="form-group">
+    <label for="render_delay" class="form-label">Render delay (ms):</label>
+    <input type="number" id="render_delay" name="render_delay" value="2000" min="0" step="500" class="form-input">
+    <span style="color: var(--text-secondary); font-size: 0.85em;">Extra wait after the page loads so cards finish rendering before the screenshot. On slow hardware (e.g. a Pi Zero 2 W) custom cards with live data need longer &mdash; try <code>12000</code>. Too long risks Home Assistant dropping its connection mid-render.</span>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Render resolution (optional):</label>
+    <div style="display: flex; gap: 8px;">
+        <input type="number" id="render_width" name="render_width" placeholder="width e.g. 1000" min="0" step="10" class="form-input">
+        <input type="number" id="render_height" name="render_height" placeholder="height e.g. 600" min="0" step="10" class="form-input">
+    </div>
+    <span style="color: var(--text-secondary); font-size: 0.85em;">Size the browser renders at before being scaled down to the display. Leave blank to render at the display resolution. Set this <em>larger</em> than your display (keeping the same aspect ratio) if the dashboard looks zoomed in or content is cut off &mdash; e.g. <code>1000&times;600</code> for an 800&times;480 panel.</span>
+</div>
+
+<div class="form-group">
+    <span style="color: var(--text-primary);">Note: rendering a full browser is memory-intensive on a Pi Zero 2 W. If captures fail or the device crashes, simplify the dashboard view.</span>
+</div>
+
+<script>
+    // populate form values from plugin settings
+    document.addEventListener('DOMContentLoaded', () => {
+        if (loadPluginSettings) {
+            document.getElementById('ha_url').value = pluginSettings.ha_url || '';
+            document.getElementById('dashboard_path').value = pluginSettings.dashboard_path || '';
+            document.getElementById('access_token').value = pluginSettings.access_token || '';
+            if (pluginSettings.render_delay) {
+                document.getElementById('render_delay').value = pluginSettings.render_delay;
+            }
+            document.getElementById('render_width').value = pluginSettings.render_width || '';
+            document.getElementById('render_height').value = pluginSettings.render_height || '';
+        }
+    });
+</script>

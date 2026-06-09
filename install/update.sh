@@ -117,6 +117,16 @@ else
   exit 1
 fi
 
+# Ensure the Chromium browser Playwright drives for the Home Assistant plugin is present
+# (the pip package ships no browser; without this an updated install has no Chromium).
+echo "Installing Chromium browser for the Home Assistant plugin..."
+$VENV_PATH/bin/playwright install-deps chromium > /dev/null 2>&1
+if $VENV_PATH/bin/playwright install chromium > /dev/null 2>&1; then
+  echo_success "Chromium browser ready."
+else
+  echo_error "Chromium browser install skipped/failed (needed only by the Home Assistant plugin)."
+fi
+
 echo "Updating executable in ${BINPATH}/$APPNAME"
 cp $SCRIPT_DIR/inkypi $BINPATH/
 sudo chmod +x $BINPATH/$APPNAME

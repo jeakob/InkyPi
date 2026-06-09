@@ -13,8 +13,11 @@ RestartSec=60
 KillSignal=SIGINT
 StandardOutput=journal
 StandardError=journal
-CPUQuota=40%
-MemoryMax=200M
+# Sized so the Home Assistant plugin's headless Chromium can render the full HA
+# frontend (needs ~300-350MB and multiple cores). The previous 40%/200M starved it,
+# producing blank captures. earlyoom + zram (installed by install.sh) guard the OS.
+CPUQuota=350%
+MemoryMax=384M
 
 [Install]
 WantedBy=multi-user.target

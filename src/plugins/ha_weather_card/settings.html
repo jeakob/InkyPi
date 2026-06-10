@@ -1,0 +1,221 @@
+<style>
+  .hawc-section { margin-top: 14px; }
+  .hawc-section:last-of-type { margin-bottom: 24px; }
+  .hawc-section > .hawc-head { font-weight: 700; color: var(--text-primary); border-bottom: 1px solid var(--border-color, #ccc); padding-bottom: 3px; margin-bottom: 8px; }
+  .hawc-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .hawc-toggles label { font-size: 0.9em; display: flex; align-items: center; gap: 6px; color: var(--text-primary); }
+  .hawc-section label, .hawc-section .form-label { color: var(--text-primary); }
+  .hawc-hint { color: var(--text-secondary); font-size: 0.82em; }
+  .hawc-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+</style>
+
+<div class="hawc-section">
+  <div class="hawc-head">Connection</div>
+  <div class="form-group">
+    <label for="ha_url" class="form-label">Home Assistant URL:</label>
+    <input type="text" id="ha_url" name="ha_url" placeholder="https://homeassistant.local:8123" required class="form-input">
+  </div>
+  <div class="form-group">
+    <label for="access_token" class="form-label">Long-lived access token:</label>
+    <textarea id="access_token" name="access_token" rows="2" placeholder="Paste your token here" required class="form-input"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="weather_entity" class="form-label">Weather entity:</label>
+    <input type="text" id="weather_entity" name="weather_entity" placeholder="weather.home" required class="form-input">
+  </div>
+  <div class="form-group">
+    <label style="font-size:0.9em;"><input type="checkbox" id="insecure" name="insecure" value="true"> Skip SSL verification (self-signed cert)</label>
+  </div>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">Language &amp; Title</div>
+  <div class="hawc-grid2">
+    <div class="form-group">
+      <label for="locale" class="form-label">Language:</label>
+      <select id="locale" name="locale" class="form-input">
+        <option value="en">English</option>
+        <option value="pl">Polski</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="title" class="form-label">Title:</label>
+      <input type="text" id="title" name="title" placeholder="Defaults to entity name" class="form-input">
+    </div>
+  </div>
+  <div class="hawc-grid2">
+    <div class="form-group">
+      <label class="form-label" style="font-size:0.85em;">…or title from sensor:</label>
+      <input type="text" id="title_sensor" name="title_sensor" placeholder="sensor.…" class="form-input">
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="font-size:0.85em;">Title sensor attribute (optional):</label>
+      <input type="text" id="title_sensor_attribute" name="title_sensor_attribute" placeholder="leave blank for state" class="form-input">
+    </div>
+  </div>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">What to show</div>
+  <div id="hawc-toggle-container" class="hawc-toggles"></div>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">Clock</div>
+  <div class="hawc-toggles" id="hawc-clock-container"></div>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">Custom text</div>
+  <div class="form-group">
+    <label class="form-label" style="font-size:0.85em;">Text:</label>
+    <input type="text" id="custom_text_sensor_value" name="custom_text_sensor_value" placeholder="e.g. an anniversary, a note…" class="form-input">
+    <span class="hawc-hint">Free text shown under the header. Leave blank to pull it from the sensor below instead.</span>
+  </div>
+  <div class="hawc-grid2">
+    <div class="form-group">
+      <label class="form-label" style="font-size:0.85em;">…or sensor:</label>
+      <input type="text" id="custom_text_sensor" name="custom_text_sensor" placeholder="sensor.…" class="form-input">
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="font-size:0.85em;">Sensor attribute (optional):</label>
+      <input type="text" id="custom_text_sensor_attribute" name="custom_text_sensor_attribute" placeholder="leave blank for state" class="form-input">
+    </div>
+  </div>
+  <div class="hawc-grid2">
+    <div class="form-group">
+      <label for="custom_text_sensor_color" class="form-label">Color:</label>
+      <input type="color" id="custom_text_sensor_color" name="custom_text_sensor_color" value="#d35400">
+    </div>
+    <div class="form-group">
+      <label for="custom_text_sensor_text_size" class="form-label">Size (px):</label>
+      <input type="number" id="custom_text_sensor_text_size" name="custom_text_sensor_text_size" value="18" min="8" class="form-input">
+    </div>
+  </div>
+  <label style="font-size:0.9em;"><input type="checkbox" id="custom_text_sensor_bold" name="custom_text_sensor_bold" value="true" checked> Bold</label>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">Forecast</div>
+  <div class="hawc-grid2">
+    <div class="form-group">
+      <label for="forecast_type" class="form-label">Type:</label>
+      <select id="forecast_type" name="forecast_type" class="form-input">
+        <option value="daily">Daily</option>
+        <option value="hourly">Hourly (chart)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="forecast_count" class="form-label">Points:</label>
+      <input type="number" id="forecast_count" name="forecast_count" value="5" min="0" max="24" class="form-input">
+    </div>
+  </div>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">Appearance</div>
+  <div class="hawc-grid2">
+    <div class="form-group"><label class="form-label">Text color:</label><input type="color" id="textColor" name="textColor" value="#000000"></div>
+    <div class="form-group"><label class="form-label">Title color:</label><input type="color" id="title_color" name="title_color" value="#000000"></div>
+    <div class="form-group"><label class="form-label">Accent color:</label><input type="color" id="accentColor" name="accentColor" value="#d35400"></div>
+  </div>
+  <div class="hawc-grid2">
+    <div class="form-group"><label class="form-label">Temp size (px):</label><input type="number" id="current_temp_size" name="current_temp_size" value="64" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Condition size (px):</label><input type="number" id="condition_size" name="condition_size" value="34" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Attributes size (px):</label><input type="number" id="attributes_size" name="attributes_size" value="18" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Title size (px):</label><input type="number" id="title_size" name="title_size" value="30" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Forecast icon size (px):</label><input type="number" id="forecast_icon_size" name="forecast_icon_size" value="36" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Forecast text size (px):</label><input type="number" id="forecast_text_size" name="forecast_text_size" value="16" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Feels-like size (px):</label><input type="number" id="feels_like_size" name="feels_like_size" value="16" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Description size (px):</label><input type="number" id="description_size" name="description_size" value="18" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Day/date size (px):</label><input type="number" id="day_date_size" name="day_date_size" value="20" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Time size (px):</label><input type="number" id="time_size" name="time_size" value="40" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Daily summary size (px):</label><input type="number" id="summary_size" name="summary_size" value="18" class="form-input"></div>
+  </div>
+</div>
+
+<div class="hawc-section">
+  <div class="hawc-head">Alternative sensors (optional)</div>
+  <span class="hawc-hint">Override any stat with a different entity. Leave blank to use the weather entity.</span>
+  <div class="hawc-grid2" id="hawc-override-container" style="margin-top:8px;"></div>
+</div>
+
+<script>
+  // Toggle definitions: [setting name, label, default-on]
+  const HAWC_TOGGLES = [
+    ['show_main','Main section',true], ['show_current_condition','Condition text',true],
+    ['show_temperature','Temperature',true], ['show_feels_like','Feels like',true],
+    ['show_description','Description',false], ['show_attributes','Attributes',true],
+    ['show_attribute_labels','Attribute labels',true], ['show_humidity','Humidity',true],
+    ['show_pressure','Pressure',true], ['show_wind_speed','Wind speed',true],
+    ['show_wind_direction','Wind direction',true], ['show_wind_gust_speed','Wind gust',false],
+    ['show_dew_point','Dew point',false], ['show_visibility','Visibility',false],
+    ['show_sun','Sun',true], ['show_uv','UV index',false],
+    ['show_daily_summary','Daily summary (Tomorrow / In 2 days)',false],
+  ];
+  const HAWC_CLOCK = [
+    ['show_day','Day name',true], ['show_date','Date',true],
+    ['show_time','Time',false], ['use_12hour_format','12-hour clock',false],
+  ];
+  const HAWC_OVERRIDES = [
+    ['temp','Temperature'], ['feels_like','Feels like'], ['description','Description'],
+    ['press','Pressure'], ['humid','Humidity'], ['uv','UV index'],
+    ['winddir','Wind bearing'], ['windspeed','Wind speed'], ['dew_point','Dew point'],
+    ['wind_gust_speed','Wind gust'], ['visibility','Visibility'], ['cloud_coverage','Cloud coverage'],
+  ];
+
+  function hawcToggle(container, name, label, defOn) {
+    // Hidden input always submits true/false (FormData drops unchecked checkboxes).
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden'; hidden.name = name; hidden.id = name + '_v'; hidden.value = defOn ? 'true' : 'false';
+    const lbl = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.id = name; cb.checked = defOn;
+    cb.addEventListener('change', () => hidden.value = cb.checked ? 'true' : 'false');
+    lbl.appendChild(cb); lbl.appendChild(document.createTextNode(' ' + label));
+    container.appendChild(hidden); container.appendChild(lbl);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tc = document.getElementById('hawc-toggle-container');
+    HAWC_TOGGLES.forEach(([n, l, d]) => hawcToggle(tc, n, l, d));
+    const cc = document.getElementById('hawc-clock-container');
+    HAWC_CLOCK.forEach(([n, l, d]) => hawcToggle(cc, n, l, d));
+    const oc = document.getElementById('hawc-override-container');
+    HAWC_OVERRIDES.forEach(([n, l]) => {
+      const g = document.createElement('div'); g.className = 'form-group';
+      g.innerHTML = '<label class="form-label" style="font-size:0.85em;">' + l + '</label>' +
+        '<input type="text" name="' + n + '" id="ov_' + n + '" placeholder="sensor.…" class="form-input">';
+      oc.appendChild(g);
+    });
+
+    if (typeof loadPluginSettings !== 'undefined' && loadPluginSettings && typeof pluginSettings !== 'undefined') {
+      const set = (id, v) => { const e = document.getElementById(id); if (e && v !== undefined) e.value = v; };
+      set('ha_url', pluginSettings.ha_url); set('access_token', pluginSettings.access_token);
+      set('weather_entity', pluginSettings.weather_entity); set('title', pluginSettings.title);
+      set('title_sensor', pluginSettings.title_sensor); set('title_sensor_attribute', pluginSettings.title_sensor_attribute);
+      set('locale', pluginSettings.locale || 'en'); set('forecast_type', pluginSettings.forecast_type || 'daily');
+      set('forecast_count', pluginSettings.forecast_count); set('custom_text_sensor_value', pluginSettings.custom_text_sensor_value);
+      set('custom_text_sensor', pluginSettings.custom_text_sensor); set('custom_text_sensor_attribute', pluginSettings.custom_text_sensor_attribute);
+      set('custom_text_sensor_color', pluginSettings.custom_text_sensor_color); set('custom_text_sensor_text_size', pluginSettings.custom_text_sensor_text_size);
+      set('textColor', pluginSettings.textColor); set('accentColor', pluginSettings.accentColor);
+      set('current_temp_size', pluginSettings.current_temp_size); set('condition_size', pluginSettings.condition_size);
+      set('attributes_size', pluginSettings.attributes_size); set('title_size', pluginSettings.title_size);
+      set('forecast_icon_size', pluginSettings.forecast_icon_size); set('forecast_text_size', pluginSettings.forecast_text_size);
+      set('feels_like_size', pluginSettings.feels_like_size); set('description_size', pluginSettings.description_size);
+      set('day_date_size', pluginSettings.day_date_size); set('time_size', pluginSettings.time_size); set('summary_size', pluginSettings.summary_size);
+      set('title_color', pluginSettings.title_color);
+      set('feels_like_size', pluginSettings.feels_like_size);
+      document.getElementById('insecure').checked = pluginSettings.insecure === 'true';
+      document.getElementById('custom_text_sensor_bold').checked = pluginSettings.custom_text_sensor_bold !== 'false';
+      // toggles
+      [...HAWC_TOGGLES, ...HAWC_CLOCK].forEach(([n, l, d]) => {
+        const saved = pluginSettings[n];
+        const on = saved === undefined ? d : saved === 'true';
+        const cb = document.getElementById(n), hv = document.getElementById(n + '_v');
+        if (cb) cb.checked = on; if (hv) hv.value = on ? 'true' : 'false';
+      });
+      HAWC_OVERRIDES.forEach(([n]) => set('ov_' + n, pluginSettings[n]));
+    }
+  });
+</script>

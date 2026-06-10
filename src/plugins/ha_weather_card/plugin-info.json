@@ -1,0 +1,5 @@
+{
+    "display_name": "HA Weather Card",
+    "id": "ha_weather_card",
+    "class": "HAWeatherCard"
+}

@@ -1,0 +1,158 @@
+{% extends "plugin.html" %}
+
+{% block content %}
+<div class="eink-weather-card" style="--text-color: {{ text_color }}; --accent-color: {{ accent_color }}; height: {{ height }}px; padding-bottom: {{ bottom_height }}px;">
+  <div class="top">
+
+  <div class="header">
+    <div class="title" style="font-size: {{ sizes.title }}px; color: {{ title_color }};">{{ title }}</div>
+    {% if custom_text %}
+    <div class="custom-text" data-size="{{ custom_text.size }}" style="font-size: {{ custom_text.size }}px; color: {{ custom_text.color }}; font-weight: {{ 700 if custom_text.bold else 400 }};">
+      {{ custom_text.value }}
+    </div>
+    {% endif %}
+    {% if clock.show_day or clock.show_date or clock.show_time %}
+    <div class="clock" style="font-size: {{ sizes.day_date }}px;">
+      {% if clock.show_time %}<span class="clock-time" style="font-size: {{ sizes.time }}px;">{{ clock.time }}</span>{% endif %}
+      {% if clock.show_day %}<span>{{ clock.day }}</span>{% endif %}
+      {% if clock.show_date %}<span>{{ clock.date }}</span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if show.main %}
+  <div class="main">
+    <img class="condition-icon" src="{{ condition_icon }}" alt="{{ condition }}">
+    {% if show.temperature %}
+    <div class="temp" style="font-size: {{ sizes.current_temp }}px;">{{ temperature }}<span class="temp-unit">{{ temp_unit }}</span></div>
+    {% endif %}
+
+    {% if show.attributes and data_points %}
+    <div class="attributes" style="font-size: {{ sizes.attributes }}px;">
+      {% for dp in data_points %}
+      <div class="attribute">
+        <img class="attribute-icon" src="{{ dp.icon }}" alt="{{ dp.label }}">
+        <div class="attribute-text">
+          {% if show.attribute_labels %}<div class="attribute-label">{{ dp.label }}</div>{% endif %}
+          <div class="attribute-value">{{ dp.value }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  </div><!-- /top -->
+
+  {# Condition / feels-like fill the space between the current row and the forecast. #}
+  <div class="middle">
+    {% if show.current_condition %}<div class="condition" style="font-size: {{ sizes.condition }}px;">{{ condition }}</div>{% endif %}
+    {% if show.description and description %}<div class="description" style="font-size: {{ sizes.description }}px;">{{ description }}</div>{% endif %}
+    {% if show.feels_like and feels_like not in (None, "—") %}
+    <div class="feels-like" style="font-size: {{ sizes.feels_like }}px;">{{ t.feelsLike }} {{ feels_like }}{{ temp_unit }}</div>
+    {% endif %}
+  </div>
+
+  <div class="bottom">
+  {% if forecast %}
+  <div class="forecast">
+    {% if forecast_type == "daily" %}
+    <div class="daily-forecast">
+      {% for f in forecast %}
+      <div class="daily-cell">
+        <div class="daily-day" style="font-size: {{ sizes.forecast_text }}px;">{{ f.time }}</div>
+        <img class="daily-icon" src="{{ f.icon }}" style="width: {{ sizes.forecast_icon + 20 }}px; height: {{ sizes.forecast_icon + 20 }}px;" alt="">
+        <div class="daily-temps" style="font-size: {{ sizes.forecast_text }}px;">
+          <span class="daily-high">{{ f.temperature | round | int if f.temperature is not none else '' }}°</span>
+          {% if f.templow is not none %}<span class="daily-low">{{ f.templow | round | int }}°</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="forecast-icons">
+      {% for f in forecast %}
+      <div class="forecast-icon-cell" style="width: {{ (100 / forecast|length) }}%;">
+        <img src="{{ f.icon }}" style="width: {{ sizes.forecast_icon }}px; height: {{ sizes.forecast_icon }}px;" alt="">
+      </div>
+      {% endfor %}
+    </div>
+    <div class="chart-container" style="height: {{ sizes.chart_height }}px;"><canvas id="forecastChart"></canvas></div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if daily_summary %}
+  <div class="daily-summary" style="font-size: {{ sizes.summary }}px;">
+    {% for d in daily_summary %}
+    <div class="summary-item">
+      <span class="summary-label">{{ d.label }}</span>
+      <span class="summary-temp">{{ d.high }}°{% if d.low not in (None, "—") %} / {{ d.low }}°{% endif %}</span>
+      <img class="summary-icon" src="{{ d.icon }}" alt="">
+      <span class="summary-cond">{{ d.condition }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  </div>
+</div>
+
+<script>
+  // Shrink the header custom text to fit the space left by the title and date; if it
+  // still does not fit at the minimum size, hide it (the date keeps its space).
+  document.addEventListener("DOMContentLoaded", function () {
+    const ct = document.querySelector('.header .custom-text');
+    if (!ct) return;
+    let size = parseInt(ct.dataset.size) || 18;
+    while (ct.scrollWidth > ct.clientWidth + 1 && size > 9) {
+      size -= 1;
+      ct.style.fontSize = size + 'px';
+    }
+    if (ct.scrollWidth > ct.clientWidth + 1) ct.style.visibility = 'hidden';
+  });
+</script>
+
+{% if forecast and forecast_type != "daily" %}
+<script src="{{ static_dir }}/scripts/chart.js" charset="UTF-8"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const labels = [{% for f in forecast %}"{{ f.time }}"{% if not loop.last %}, {% endif %}{% endfor %}];
+    const temps = [{% for f in forecast %}{{ f.temperature if f.temperature is not none else 'null' }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    const rainProb = [{% for f in forecast %}{{ f.precipitation_probability }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    const textColor = "{{ text_color }}", accentColor = "{{ accent_color }}";
+    const fcText = {{ sizes.forecast_text }};
+    const canvas = document.getElementById('forecastChart');
+    if (!canvas || labels.length === 0) return;
+    const tempLabels = {
+      id: 'tempLabels',
+      afterDatasetsDraw(chart) {
+        const c = chart.ctx;
+        c.save(); c.textAlign = 'center';
+        // temperature above each point
+        c.fillStyle = textColor; c.font = 'bold ' + fcText + 'px sans-serif';
+        chart.getDatasetMeta(0).data.forEach((pt, i) => {
+          if (temps[i] !== null) c.fillText(Math.round(temps[i]) + '°', pt.x, pt.y - 10);
+        });
+        // chance-of-rain % above bars that have a meaningful chance
+        c.fillStyle = '#1a6fb0'; c.font = (fcText - 2) + 'px sans-serif';
+        chart.getDatasetMeta(1).data.forEach((bar, i) => {
+          if (rainProb[i] >= 5) c.fillText(Math.round(rainProb[i]) + '%', bar.x, bar.y - 4);
+        });
+        c.restore();
+      }
+    };
+    new Chart(canvas.getContext('2d'), {
+      data: { labels, datasets: [
+        { type: 'line', data: temps, borderColor: accentColor, borderWidth: 3, pointRadius: 3,
+          pointBackgroundColor: accentColor, tension: 0.35, yAxisID: 'yTemp', spanGaps: true, order: 1 },
+        { type: 'bar', data: rainProb, backgroundColor: '#4a90d9', yAxisID: 'yPrecip', barPercentage: 0.7, order: 2 } ] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { top: 22 } },
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: { x: { grid: { display: false }, ticks: { color: textColor, font: { size: fcText, weight: 'bold' } } },
+          yTemp: { display: false, grace: '40%' }, yPrecip: { display: false, min: 0, max: 140 } } },
+      plugins: [tempLabels]
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

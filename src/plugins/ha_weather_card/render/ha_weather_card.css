@@ -9,7 +9,7 @@ body { margin: 0 !important; padding: 0 !important; }
   /* Fixed positioning + an explicit pixel height (set inline from the panel size) is the
      only combination that gives a definite height here: the base document has no doctype
      (quirks mode), so height:100% / vh collapse to content height and flex/grid can't
-     distribute. With this, the middle band flex-fills reliably. */
+     distribute. With this, the bottom forecast pins reliably to the card's lower edge. */
   position: fixed;
   top: 0;
   left: 0;
@@ -22,20 +22,9 @@ body { margin: 0 !important; padding: 0 !important; }
   padding: 8px 18px 12px;
 }
 
-/* The middle band absorbs spare space and centres the condition / feels-like. */
-.middle {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  gap: 4px;
-}
-
-/* The middle band (condition / feels-like) absorbs the spare vertical space and centres
-   itself, so those read large without shrinking the fixed-height forecast below. */
+/* The forecast is pinned to the bottom; the spare vertical space between the current
+   conditions (top) and the forecast is left empty, so a taller forecast simply grows
+   upward into it. */
 .bottom {
   position: absolute;
   left: 18px;
@@ -61,17 +50,17 @@ body { margin: 0 !important; padding: 0 !important; }
   padding-bottom: 6px;
 }
 
-.header .title { font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+.header .title { font-weight: var(--fw-strong, 700); flex-shrink: 0; white-space: nowrap; }
 .header .clock { flex-shrink: 0; white-space: nowrap; margin-left: auto; }
 
 .clock {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  font-weight: 500;
+  font-weight: var(--fw-regular, 500);
 }
 
-.clock .clock-time { font-weight: 700; }
+.clock .clock-time { font-weight: var(--fw-strong, 700); }
 
 /* Custom text sits in the header between the title and the date, taking the middle
    space. JS shrinks it to fit and hides it when there is no room (the calendar/date
@@ -88,7 +77,7 @@ body { margin: 0 !important; padding: 0 !important; }
   display: flex;
   align-items: center;
   gap: 18px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .condition-icon {
@@ -97,11 +86,24 @@ body { margin: 0 !important; padding: 0 !important; }
   flex-shrink: 0;
 }
 
-.temp { font-weight: 700; line-height: 1; flex-shrink: 0; }
-.temp-unit { font-size: 0.45em; font-weight: 500; vertical-align: top; }
-.condition { font-weight: 700; line-height: 1.1; }
-.feels-like { font-weight: 500; opacity: 0.85; }
-.description { font-weight: 500; opacity: 0.85; }
+.temp { font-weight: var(--fw-strong, 700); line-height: 1; flex-shrink: 0; }
+.temp-unit { font-size: 0.45em; font-weight: var(--fw-regular, 500); vertical-align: top; }
+
+/* Condition / feels-like / description stack beside the temperature and take the
+   space up to the attributes (which stay pinned right via margin-left:auto). */
+.conditions {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding-left: 4px;
+}
+
+.condition { font-weight: var(--fw-strong, 700); line-height: 1.1; }
+.feels-like { font-weight: var(--fw-regular, 500); opacity: 0.85; }
+.description { font-weight: var(--fw-regular, 500); opacity: 0.85; }
 
 .attributes {
   margin-left: auto;
@@ -114,12 +116,12 @@ body { margin: 0 !important; padding: 0 !important; }
 .attribute-icon { width: 26px; height: 26px; }
 .attribute-label {
   font-size: 0.72em;
-  font-weight: 600;
+  font-weight: var(--fw-regular, 600);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   opacity: 0.8;
 }
-.attribute-value { font-weight: 700; line-height: 1.1; }
+.attribute-value { font-weight: var(--fw-strong, 700); line-height: 1.1; }
 
 .forecast-icons { display: flex; width: 100%; flex-shrink: 0; }
 .forecast-icon-cell { display: flex; justify-content: center; }
@@ -137,10 +139,10 @@ body { margin: 0 !important; padding: 0 !important; }
 }
 
 .daily-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.daily-day { font-weight: 700; }
+.daily-day { font-weight: var(--fw-strong, 700); }
 .daily-temps { display: flex; gap: 8px; }
-.daily-high { font-weight: 700; }
-.daily-low { font-weight: 500; opacity: 0.7; }
+.daily-high { font-weight: var(--fw-strong, 700); }
+.daily-low { font-weight: var(--fw-regular, 500); opacity: 0.7; }
 
 .daily-summary {
   display: flex;
@@ -151,7 +153,7 @@ body { margin: 0 !important; padding: 0 !important; }
 }
 
 .summary-item { display: flex; align-items: center; gap: 8px; }
-.summary-label { font-weight: 700; }
-.summary-temp { font-weight: 600; }
+.summary-label { font-weight: var(--fw-strong, 700); }
+.summary-temp { font-weight: var(--fw-regular, 600); }
 .summary-icon { width: 34px; height: 34px; }
-.summary-cond { font-weight: 500; opacity: 0.85; }
+.summary-cond { font-weight: var(--fw-regular, 500); opacity: 0.85; }

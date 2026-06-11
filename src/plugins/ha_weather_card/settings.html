@@ -109,6 +109,11 @@
       <label for="forecast_count" class="form-label">Points:</label>
       <input type="number" id="forecast_count" name="forecast_count" value="5" min="0" max="24" class="form-input">
     </div>
+    <div class="form-group">
+      <label for="rain_bar_threshold" class="form-label">Rain bar threshold (%):</label>
+      <input type="number" id="rain_bar_threshold" name="rain_bar_threshold" value="30" min="0" max="100" class="form-input">
+      <span class="hawc-hint">Hourly chart only — hide the blue chance-of-rain bar below this probability.</span>
+    </div>
   </div>
 </div>
 
@@ -119,6 +124,7 @@
     <div class="form-group"><label class="form-label">Title color:</label><input type="color" id="title_color" name="title_color" value="#000000"></div>
     <div class="form-group"><label class="form-label">Accent color:</label><input type="color" id="accentColor" name="accentColor" value="#d35400"></div>
   </div>
+  <div class="hawc-toggles" id="hawc-bold-container" style="margin-top:6px;"></div>
   <div class="hawc-grid2">
     <div class="form-group"><label class="form-label">Temp size (px):</label><input type="number" id="current_temp_size" name="current_temp_size" value="64" class="form-input"></div>
     <div class="form-group"><label class="form-label">Condition size (px):</label><input type="number" id="condition_size" name="condition_size" value="34" class="form-input"></div>
@@ -181,6 +187,7 @@
     HAWC_TOGGLES.forEach(([n, l, d]) => hawcToggle(tc, n, l, d));
     const cc = document.getElementById('hawc-clock-container');
     HAWC_CLOCK.forEach(([n, l, d]) => hawcToggle(cc, n, l, d));
+    hawcToggle(document.getElementById('hawc-bold-container'), 'bold_text', 'Bold text', true);
     const oc = document.getElementById('hawc-override-container');
     HAWC_OVERRIDES.forEach(([n, l]) => {
       const g = document.createElement('div'); g.className = 'form-group';
@@ -195,7 +202,8 @@
       set('weather_entity', pluginSettings.weather_entity); set('title', pluginSettings.title);
       set('title_sensor', pluginSettings.title_sensor); set('title_sensor_attribute', pluginSettings.title_sensor_attribute);
       set('locale', pluginSettings.locale || 'en'); set('forecast_type', pluginSettings.forecast_type || 'daily');
-      set('forecast_count', pluginSettings.forecast_count); set('custom_text_sensor_value', pluginSettings.custom_text_sensor_value);
+      set('forecast_count', pluginSettings.forecast_count); set('rain_bar_threshold', pluginSettings.rain_bar_threshold);
+      set('custom_text_sensor_value', pluginSettings.custom_text_sensor_value);
       set('custom_text_sensor', pluginSettings.custom_text_sensor); set('custom_text_sensor_attribute', pluginSettings.custom_text_sensor_attribute);
       set('custom_text_sensor_color', pluginSettings.custom_text_sensor_color); set('custom_text_sensor_text_size', pluginSettings.custom_text_sensor_text_size);
       set('textColor', pluginSettings.textColor); set('accentColor', pluginSettings.accentColor);
@@ -209,7 +217,7 @@
       document.getElementById('insecure').checked = pluginSettings.insecure === 'true';
       document.getElementById('custom_text_sensor_bold').checked = pluginSettings.custom_text_sensor_bold !== 'false';
       // toggles
-      [...HAWC_TOGGLES, ...HAWC_CLOCK].forEach(([n, l, d]) => {
+      [...HAWC_TOGGLES, ...HAWC_CLOCK, ['bold_text', 'Bold text', true]].forEach(([n, l, d]) => {
         const saved = pluginSettings[n];
         const on = saved === undefined ? d : saved === 'true';
         const cb = document.getElementById(n), hv = document.getElementById(n + '_v');

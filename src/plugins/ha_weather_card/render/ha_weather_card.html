@@ -1,7 +1,7 @@
 {% extends "plugin.html" %}
 
 {% block content %}
-<div class="eink-weather-card" style="--text-color: {{ text_color }}; --accent-color: {{ accent_color }}; height: {{ height }}px; padding-bottom: {{ bottom_height }}px;">
+<div class="eink-weather-card" style="--text-color: {{ text_color }}; --accent-color: {{ accent_color }}; --fw-strong: {{ fw_strong }}; --fw-regular: {{ fw_regular }}; height: {{ height }}px; padding-bottom: {{ bottom_height }}px;">
   <div class="top">
 
   <div class="header">
@@ -27,6 +27,16 @@
     <div class="temp" style="font-size: {{ sizes.current_temp }}px;">{{ temperature }}<span class="temp-unit">{{ temp_unit }}</span></div>
     {% endif %}
 
+    {# Condition / feels-like / description sit beside the temperature, filling the
+       horizontal gap between it and the attributes. #}
+    <div class="conditions">
+      {% if show.current_condition %}<div class="condition" style="font-size: {{ sizes.condition }}px;">{{ condition }}</div>{% endif %}
+      {% if show.description and description %}<div class="description" style="font-size: {{ sizes.description }}px;">{{ description }}</div>{% endif %}
+      {% if show.feels_like and feels_like not in (None, "—") %}
+      <div class="feels-like" style="font-size: {{ sizes.feels_like }}px;">{{ t.feelsLike }} {{ feels_like }}{{ temp_unit }}</div>
+      {% endif %}
+    </div>
+
     {% if show.attributes and data_points %}
     <div class="attributes" style="font-size: {{ sizes.attributes }}px;">
       {% for dp in data_points %}
@@ -43,15 +53,6 @@
   </div>
   {% endif %}
   </div><!-- /top -->
-
-  {# Condition / feels-like fill the space between the current row and the forecast. #}
-  <div class="middle">
-    {% if show.current_condition %}<div class="condition" style="font-size: {{ sizes.condition }}px;">{{ condition }}</div>{% endif %}
-    {% if show.description and description %}<div class="description" style="font-size: {{ sizes.description }}px;">{{ description }}</div>{% endif %}
-    {% if show.feels_like and feels_like not in (None, "—") %}
-    <div class="feels-like" style="font-size: {{ sizes.feels_like }}px;">{{ t.feelsLike }} {{ feels_like }}{{ temp_unit }}</div>
-    {% endif %}
-  </div>
 
   <div class="bottom">
   {% if forecast %}
@@ -119,24 +120,37 @@
     const labels = [{% for f in forecast %}"{{ f.time }}"{% if not loop.last %}, {% endif %}{% endfor %}];
     const temps = [{% for f in forecast %}{{ f.temperature if f.temperature is not none else 'null' }}{% if not loop.last %}, {% endif %}{% endfor %}];
     const rainProb = [{% for f in forecast %}{{ f.precipitation_probability }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    // Only show a bar when rain is actually likely; below the threshold draw nothing.
+    const rainThreshold = {{ rain_threshold }};
+    const rainBars = rainProb.map(v => v >= rainThreshold ? v : null);
     const textColor = "{{ text_color }}", accentColor = "{{ accent_color }}";
     const fcText = {{ sizes.forecast_text }};
+    const fcWeight = {{ 'true' if bold_text else 'false' }} ? 'bold' : 'normal';
     const canvas = document.getElementById('forecastChart');
     if (!canvas || labels.length === 0) return;
+    // Split the plot into two bands so the labels never overlap: the temperature line +
+    // its labels live in the TOP half, the chance-of-rain bars + their % live in the
+    // BOTTOM half. The temperature axis is sized asymmetrically (extra room below the
+    // data) to hold the line high; the precip axis keeps even a 100% bar in the lower band.
+    const validTemps = temps.filter(v => v !== null);
+    const tMin = validTemps.length ? Math.min(...validTemps) : 0;
+    const tMax = validTemps.length ? Math.max(...validTemps) : 1;
+    const tSpan = Math.max(1, tMax - tMin);
     const tempLabels = {
       id: 'tempLabels',
       afterDatasetsDraw(chart) {
-        const c = chart.ctx;
+        const c = chart.ctx, area = chart.chartArea;
+        const mid = area.top + area.height * 0.5;
         c.save(); c.textAlign = 'center';
-        // temperature above each point
-        c.fillStyle = textColor; c.font = 'bold ' + fcText + 'px sans-serif';
+        // temperature, clamped to the upper band just above each point
+        c.fillStyle = textColor; c.font = fcWeight + ' ' + fcText + 'px sans-serif';
         chart.getDatasetMeta(0).data.forEach((pt, i) => {
-          if (temps[i] !== null) c.fillText(Math.round(temps[i]) + '°', pt.x, pt.y - 10);
+          if (temps[i] !== null) c.fillText(Math.round(temps[i]) + '°', pt.x, Math.min(pt.y - 10, mid - 8));
         });
-        // chance-of-rain % above bars that have a meaningful chance
-        c.fillStyle = '#1a6fb0'; c.font = (fcText - 2) + 'px sans-serif';
+        // chance-of-rain %, clamped to the lower band just above each bar
+        c.fillStyle = '#1a6fb0'; c.font = fcWeight + ' ' + (fcText - 1) + 'px sans-serif';
         chart.getDatasetMeta(1).data.forEach((bar, i) => {
-          if (rainProb[i] >= 5) c.fillText(Math.round(rainProb[i]) + '%', bar.x, bar.y - 4);
+          if (rainBars[i] !== null) c.fillText(Math.round(rainProb[i]) + '%', bar.x, Math.max(bar.y - 4, mid + fcText));
         });
         c.restore();
       }
@@ -145,11 +159,14 @@
       data: { labels, datasets: [
         { type: 'line', data: temps, borderColor: accentColor, borderWidth: 3, pointRadius: 3,
           pointBackgroundColor: accentColor, tension: 0.35, yAxisID: 'yTemp', spanGaps: true, order: 1 },
-        { type: 'bar', data: rainProb, backgroundColor: '#4a90d9', yAxisID: 'yPrecip', barPercentage: 0.7, order: 2 } ] },
-      options: { responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { top: 22 } },
+        { type: 'bar', data: rainBars, backgroundColor: '#2f7fd1', yAxisID: 'yPrecip', barPercentage: 0.78, order: 2 } ] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { top: 24 } },
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: { x: { grid: { display: false }, ticks: { color: textColor, font: { size: fcText, weight: 'bold' } } },
-          yTemp: { display: false, grace: '40%' }, yPrecip: { display: false, min: 0, max: 140 } } },
+        scales: { x: { grid: { display: false }, ticks: { color: textColor, font: { size: fcText, weight: fcWeight } } },
+          // hold the temperature line in the top band (lots of empty room below the data)
+          yTemp: { display: false, min: tMin - tSpan * 1.6, max: tMax + tSpan * 0.3 },
+          // keep rain bars in the bottom band (100% ≈ 60% of the height)
+          yPrecip: { display: false, min: 0, max: 170 } } },
       plugins: [tempLabels]
     });
   });

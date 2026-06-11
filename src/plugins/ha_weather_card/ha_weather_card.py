@@ -201,9 +201,15 @@ class HAWeatherCard(BasePlugin):
             return attrs.get(name)
 
         is_day = self._is_day(attrs)
+        bold_text = _truthy(s.get("bold_text"), True)
         p = {
             "t": t,
             "title": title,
+            "bold_text": bold_text,
+            # Two font-weight tiers so the card keeps its visual hierarchy in either mode:
+            # bold (default) runs heavier throughout, off falls back to normal weights.
+            "fw_strong": 700 if bold_text else 600,
+            "fw_regular": 600 if bold_text else 400,
             "text_color": s.get("textColor") or "#000000",
             "title_color": s.get("title_color") or s.get("textColor") or "#000000",
             "accent_color": s.get("accentColor") or "#d35400",
@@ -231,6 +237,12 @@ class HAWeatherCard(BasePlugin):
         p["custom_text"] = self._custom_text(s, custom_text)
         p["forecast"] = self._parse_forecast(forecast, forecast_type, t, s)
         p["forecast_type"] = forecast_type
+        # Chance-of-rain bars are hidden below this probability (%), so the chart only shows
+        # a bar when rain is actually likely rather than for every hour.
+        try:
+            p["rain_threshold"] = max(0, min(100, int(s.get("rain_bar_threshold") or 30)))
+        except (TypeError, ValueError):
+            p["rain_threshold"] = 30
         p["daily_summary"] = self._daily_summary(s, t)
         sizes = self._sizes(s)
         p["sizes"] = sizes
@@ -363,9 +375,10 @@ class HAWeatherCard(BasePlugin):
             except (TypeError, ValueError):
                 out[key] = d
         # Chart height grows with the forecast text/icon size so enlarging the forecast
-        # gives the line and precipitation bars more room. Kept modest so the centred
-        # condition/feels band and the daily summary still fit.
-        out["chart_height"] = max(64, out["forecast_icon"] + out["forecast_text"])
+        # gives the line and precipitation bars more room. The conditions now sit beside
+        # the temperature (no centred band competes for height), so the forecast can be
+        # tall: more vertical room for the temperature line and the precipitation bars.
+        out["chart_height"] = max(130, (out["forecast_icon"] + out["forecast_text"]) * 2)
         return out
 
     # --- helpers --------------------------------------------------------------

@@ -263,14 +263,17 @@ class HAWeatherCard(BasePlugin):
         return p
 
     def _daily_summary(self, s, t):
-        """The 'Tomorrow' / 'In 2 days' summary (localized labels), from the daily forecast."""
+        """The 'Tomorrow' / 'In 2 days' summary, from the daily forecast. The two labels
+        default to the language pack but can be overridden in settings."""
         if not _truthy(s.get("show_daily_summary"), False):
             return []
         from datetime import timedelta
         daily = self._get_forecast(s.get("weather_entity"), "daily")
         today = datetime.now().date()
-        targets = [(today + timedelta(days=1), t.get("tomorrow", "Tomorrow")),
-                   (today + timedelta(days=2), t.get("in2days", "In 2 days"))]
+        tomorrow = (s.get("summary_tomorrow_label") or "").strip() or t.get("tomorrow", "Tomorrow")
+        in2days = (s.get("summary_in2days_label") or "").strip() or t.get("in2days", "In 2 days")
+        targets = [(today + timedelta(days=1), tomorrow),
+                   (today + timedelta(days=2), in2days)]
         out = []
         for target_date, label in targets:
             for e in daily:

@@ -123,6 +123,21 @@
 </div>
 
 <div class="hawc-section">
+  <div class="hawc-head">Daily summary</div>
+  <span class="hawc-hint">Shown when “Daily summary” is ticked under <em>What to show</em>. Leave a label blank to use the language default (Tomorrow / In 2 days · Jutro / Za 2 dni).</span>
+  <div class="hawc-grid2" style="margin-top:8px;">
+    <div class="form-group">
+      <label for="summary_tomorrow_label" class="form-label">“Tomorrow” label:</label>
+      <input type="text" id="summary_tomorrow_label" name="summary_tomorrow_label" placeholder="Tomorrow / Jutro" class="form-input">
+    </div>
+    <div class="form-group">
+      <label for="summary_in2days_label" class="form-label">“In 2 days” label:</label>
+      <input type="text" id="summary_in2days_label" name="summary_in2days_label" placeholder="In 2 days / Za 2 dni" class="form-input">
+    </div>
+  </div>
+</div>
+
+<div class="hawc-section">
   <div class="hawc-head">Appearance</div>
   <div class="hawc-grid2">
     <div class="form-group"><label class="form-label">Text color:</label><input type="color" id="textColor" name="textColor" value="#000000"></div>
@@ -211,6 +226,7 @@
       set('title_sensor', pluginSettings.title_sensor); set('title_sensor_attribute', pluginSettings.title_sensor_attribute);
       set('locale', pluginSettings.locale || 'en'); set('forecast_type', pluginSettings.forecast_type || 'daily');
       set('forecast_count', pluginSettings.forecast_count); set('rain_bar_threshold', pluginSettings.rain_bar_threshold);
+      set('summary_tomorrow_label', pluginSettings.summary_tomorrow_label); set('summary_in2days_label', pluginSettings.summary_in2days_label);
       set('custom_text_sensor_value', pluginSettings.custom_text_sensor_value);
       set('custom_text_sensor', pluginSettings.custom_text_sensor); set('custom_text_sensor_attribute', pluginSettings.custom_text_sensor_attribute);
       set('custom_text_sensor_color', pluginSettings.custom_text_sensor_color); set('custom_text_sensor_text_size', pluginSettings.custom_text_sensor_text_size);

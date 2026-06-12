@@ -33,7 +33,7 @@
       {% if show.current_condition %}<div class="condition" style="font-size: {{ sizes.condition }}px;">{{ condition }}</div>{% endif %}
       {% if show.description and description %}<div class="description" style="font-size: {{ sizes.description }}px;">{{ description }}</div>{% endif %}
       {% if show.feels_like and feels_like not in (None, "—") %}
-      <div class="feels-like" style="font-size: {{ sizes.feels_like }}px;">{{ t.feelsLike }} {{ feels_like }}{{ temp_unit }}</div>
+      <div class="feels-like" style="font-size: {{ sizes.feels_like }}px; font-weight: {{ fw_strong if feels_like_bold else fw_regular }};">{{ t.feelsLike }} {{ feels_like }}{{ temp_unit }}</div>
       {% endif %}
     </div>
 

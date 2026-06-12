@@ -207,9 +207,11 @@ class HAWeatherCard(BasePlugin):
             "t": t,
             "title": title,
             "bold_text": bold_text,
-            # The feels-like line has its own bold control (default on); on -> the strong
-            # weight tier, off -> the regular tier.
+            # Per-text-field bold controls (default on); on -> the strong weight tier,
+            # off -> the regular tier. Each editable text field gets its own toggle.
             "feels_like_bold": _truthy(s.get("feels_like_bold"), True),
+            "title_bold": _truthy(s.get("title_bold"), True),
+            "summary_bold": _truthy(s.get("summary_bold"), True),
             # Two font-weight tiers so the card keeps its visual hierarchy in either mode:
             # bold (default) runs heavier throughout, off falls back to normal weights.
             "fw_strong": 700 if bold_text else 600,

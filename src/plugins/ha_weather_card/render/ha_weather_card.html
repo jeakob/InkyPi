@@ -5,9 +5,9 @@
   <div class="top">
 
   <div class="header">
-    <div class="title" style="font-size: {{ sizes.title }}px; color: {{ title_color }};">{{ title }}</div>
+    <div class="title" style="font-size: {{ sizes.title }}px; color: {{ title_color }}; font-weight: {{ fw_strong if title_bold else fw_regular }};">{{ title }}</div>
     {% if custom_text %}
-    <div class="custom-text" data-size="{{ custom_text.size }}" style="font-size: {{ custom_text.size }}px; color: {{ custom_text.color }}; font-weight: {{ 700 if custom_text.bold else 400 }};">
+    <div class="custom-text" data-size="{{ custom_text.size }}" style="font-size: {{ custom_text.size }}px; color: {{ custom_text.color }}; font-weight: {{ fw_strong if custom_text.bold else fw_regular }};">
       {{ custom_text.value }}
     </div>
     {% endif %}
@@ -87,7 +87,7 @@
   <div class="daily-summary" style="font-size: {{ sizes.summary }}px;">
     {% for d in daily_summary %}
     <div class="summary-item">
-      <span class="summary-label">{{ d.label }}</span>
+      <span class="summary-label" style="font-weight: {{ fw_strong if summary_bold else fw_regular }};">{{ d.label }}</span>
       <span class="summary-temp">{{ d.high }}°{% if d.low not in (None, "—") %} / {{ d.low }}°{% endif %}</span>
       <img class="summary-icon" src="{{ d.icon }}" alt="">
       <span class="summary-cond">{{ d.condition }}</span>

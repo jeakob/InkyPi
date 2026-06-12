@@ -66,6 +66,7 @@ class HAWeatherCard(BasePlugin):
         self._verify = verify_ssl
 
         weather = self._get_state(entity_id)
+        self._sun = self._get_sun(settings)
         forecast_type = settings.get("forecast_type") or "daily"
         forecast = self._get_forecast(entity_id, forecast_type)
 
@@ -200,7 +201,7 @@ class HAWeatherCard(BasePlugin):
                 return ov[ov_key]
             return attrs.get(name)
 
-        is_day = self._is_day(attrs)
+        is_day = self._is_day_now()
         bold_text = _truthy(s.get("bold_text"), True)
         p = {
             "t": t,
@@ -353,7 +354,7 @@ class HAWeatherCard(BasePlugin):
                 is_day = True
             else:
                 label = dt.strftime("%H:%M") if dt else ""
-                is_day = 6 <= dt.hour < 19 if dt else True
+                is_day = self._is_day_at(dt)
             out.append({
                 "time": label,
                 "temperature": self._num(e.get("temperature")),
@@ -401,10 +402,39 @@ class HAWeatherCard(BasePlugin):
         except (TypeError, ValueError, IndexError):
             return ""
 
-    @staticmethod
-    def _is_day(attrs):
-        fc = attrs.get("forecast")
+    def _get_sun(self, settings):
+        """Day/night from HA's sun entity: its current state plus today's sunrise/sunset
+        times (local), so icons follow the real sun rather than a fixed clock. Returns
+        None if the entity is unavailable, and callers fall back to an hour heuristic."""
+        ent = (settings.get("sun_entity") or "sun.sun").strip()
+        try:
+            st = self._get_state(ent)
+        except RuntimeError as e:
+            logger.warning(f"Sun entity '{ent}' unavailable, using hour heuristic: {e}")
+            return None
+        a = st.get("attributes", {})
+        rising = self._parse_dt(a.get("next_rising"))
+        setting = self._parse_dt(a.get("next_setting"))
+        return {
+            "up": st.get("state") == "above_horizon",
+            "sunrise": rising.time() if rising else None,
+            "sunset": setting.time() if setting else None,
+        }
+
+    def _is_day_now(self):
+        """Is the sun up right now? Trust the sun entity's state when we have it."""
+        sun = getattr(self, "_sun", None)
+        if sun is not None:
+            return sun["up"]
         return 6 <= datetime.now().hour < 19
+
+    def _is_day_at(self, dt):
+        """Is the given (local) datetime during daylight? Uses today's sunrise/sunset
+        times when available, else the 6–19 fallback."""
+        sun = getattr(self, "_sun", None)
+        if sun and sun.get("sunrise") and sun.get("sunset") and dt:
+            return sun["sunrise"] <= dt.time() < sun["sunset"]
+        return 6 <= dt.hour < 19 if dt else True
 
     @staticmethod
     def _parse_dt(value):

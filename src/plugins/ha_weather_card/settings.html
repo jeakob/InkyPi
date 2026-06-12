@@ -24,6 +24,11 @@
     <input type="text" id="weather_entity" name="weather_entity" placeholder="weather.home" required class="form-input">
   </div>
   <div class="form-group">
+    <label for="sun_entity" class="form-label">Sun entity:</label>
+    <input type="text" id="sun_entity" name="sun_entity" placeholder="sun.sun" class="form-input">
+    <span class="hawc-hint">Used to pick day vs. night icons from the real sunrise/sunset. Leave as <code>sun.sun</code> unless you renamed it.</span>
+  </div>
+  <div class="form-group">
     <label style="font-size:0.9em;"><input type="checkbox" id="insecure" name="insecure" value="true"> Skip SSL verification (self-signed cert)</label>
   </div>
 </div>
@@ -201,7 +206,8 @@
     if (typeof loadPluginSettings !== 'undefined' && loadPluginSettings && typeof pluginSettings !== 'undefined') {
       const set = (id, v) => { const e = document.getElementById(id); if (e && v !== undefined) e.value = v; };
       set('ha_url', pluginSettings.ha_url); set('access_token', pluginSettings.access_token);
-      set('weather_entity', pluginSettings.weather_entity); set('title', pluginSettings.title);
+      set('weather_entity', pluginSettings.weather_entity); set('sun_entity', pluginSettings.sun_entity);
+      set('title', pluginSettings.title);
       set('title_sensor', pluginSettings.title_sensor); set('title_sensor_attribute', pluginSettings.title_sensor_attribute);
       set('locale', pluginSettings.locale || 'en'); set('forecast_type', pluginSettings.forecast_type || 'daily');
       set('forecast_count', pluginSettings.forecast_count); set('rain_bar_threshold', pluginSettings.rain_bar_threshold);

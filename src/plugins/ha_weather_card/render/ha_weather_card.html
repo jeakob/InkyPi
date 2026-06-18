@@ -147,8 +147,10 @@
         chart.getDatasetMeta(0).data.forEach((pt, i) => {
           if (temps[i] !== null) c.fillText(Math.round(temps[i]) + '°', pt.x, Math.min(pt.y - 10, mid - 8));
         });
-        // chance-of-rain %, clamped to the lower band just above each bar
-        c.fillStyle = '#1a6fb0'; c.font = fcWeight + ' ' + (fcText - 1) + 'px sans-serif';
+        // chance-of-rain %, clamped to the lower band just above each bar.
+        // Use the main text colour (not blue): blue text above the blue bar is almost
+        // invisible on the 6-colour e-ink panel, which dithers blue badly at small sizes.
+        c.fillStyle = textColor; c.font = fcWeight + ' ' + (fcText - 1) + 'px sans-serif';
         chart.getDatasetMeta(1).data.forEach((bar, i) => {
           if (rainBars[i] !== null) c.fillText(Math.round(rainProb[i]) + '%', bar.x, Math.max(bar.y - 4, mid + fcText));
         });
